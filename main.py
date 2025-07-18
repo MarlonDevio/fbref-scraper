@@ -96,7 +96,7 @@ SEASONS_URLS = {
 }
 
 
-def save_to_file(filename: str, data: str) -> None:
+def save_to_file(filename: str, data: str | bytes) -> None:
     with open(filename, "w", encoding="utf-8") as file:
         file.write(data)
 
@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
             if scouting_report_section:
                 save_to_file(
-                    f"scouting_report_{season}.txt", scouting_report_section.text
+                    f"scouting_report_{season}.html", scouting_report_section.prettify()
                 )
                 print(f"Successfully saved report for season {season}.")
             else:
