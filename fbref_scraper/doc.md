@@ -14,3 +14,14 @@ players_table_xpath_stats = "//div[contains(@id, 'div_stats_standard')]"
 
 return f"//a[not(re:test(@href, '{regex_pattern}', 'i'))]/@href"
 return f"//a[re:test(@href, '{regex_pattern}', 'i')]/@href"
+
+
+# Comps stats page
+//table[contains(@id, "overall")] => targets the table containing the clubs and their stats
+
+//table[contains(@id, "overall")]//td[contains(@class, "left") and contains(@data-stat, "team")]//a => targets the urls of the clubs
+
+# On the club page (squads)
+//table[contains(@id, "standard")] => targets the table of the players stats
+
+//table[contains(@id, "standard")]//th[contains(@class, "left") and contains(@data-stat, "player")]//a => targets the players urls
