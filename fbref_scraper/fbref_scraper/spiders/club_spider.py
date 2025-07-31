@@ -1,6 +1,5 @@
 from collections.abc import AsyncIterator
-from pathlib import Path
-from typing import Any, List, Callable, Optional, Generator
+from typing import Any, List, Callable
 from scrapy.http import Response, TextResponse
 
 import scrapy
@@ -26,7 +25,16 @@ class ClubSpider(scrapy.Spider):
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
-    def parse(self, response: Response, **kwargs) -> dict[str, list[Link]] | None:
+    def parse(self, response: Response) -> Any | None:
+        """
+        Parses the given HTTP response to extract and return a JSON object containing URLs.
+
+        Args:
+            response (Response): The HTTP response object to parse.
+
+        Returns:
+            dict or None: A dictionary with a heading (derived from the response URL) as the key and a list of extracted URLs as the value, or None if the response is not a TextResponse.
+        """
         urls: List[Link] = []
         heading = self._create_name(response.url, lambda x: x.split("/")[-1])
 
