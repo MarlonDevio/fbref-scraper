@@ -25,3 +25,11 @@ return f"//a[re:test(@href, '{regex_pattern}', 'i')]/@href"
 //table[contains(@id, "standard")] => targets the table of the players stats
 
 //table[contains(@id, "standard")]//th[contains(@class, "left") and contains(@data-stat, "player")]//a => targets the players urls
+
+
+[storing_items_in_database.md](storing_items_in_database.md)\
+[Working with Multiple Pipelines in Scrapy](Working%20with%20Multiple%20Pipelines%20in%20Scrapy.md)\
+[Organizing Scrapy Pipelines in Separate Files](Organizing%20Scrapy%20Pipelines%20in%20Separate%20Files.md)
+
+
+

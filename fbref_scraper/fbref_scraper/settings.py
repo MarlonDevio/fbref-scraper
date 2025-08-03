@@ -1,3 +1,7 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 # Scrapy settings for fbref_scraper project
 #
 # For simplicity, this file contains only settings considered important or
@@ -27,7 +31,7 @@ ROBOTSTXT_OBEY = False
 # Concurrency and throttling settings
 # CONCURRENT_REQUESTS = 16
 CONCURRENT_REQUESTS_PER_DOMAIN = 1
-DOWNLOAD_DELAY = 7.5
+DOWNLOAD_DELAY = 6
 
 # Disable cookies (enabled by default)
 # COOKIES_ENABLED = False
@@ -61,15 +65,17 @@ DOWNLOAD_DELAY = 7.5
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-# ITEM_PIPELINES = {
-#    "fbref_scraper.pipelines.FbrefScraperPipeline": 300,
-# }
+ITEM_PIPELINES = {
+    # "fbref_scraper.pipelines.cleaning.CleaningPipeline": 100,      # Clean data first
+    # "fbref_scraper.pipelines.validation.ValidationPipeline": 200,  # Then validate
+    # "fbref_scraper.pipelines.database.DatabasePipeline": 300,      # Finally store in DB
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
-AUTOTHROTTLE_ENABLED = True
+AUTOTHROTTLE_ENABLED = False
 # The initial download delay
-AUTOTHROTTLE_START_DELAY = 7.5
+AUTOTHROTTLE_START_DELAY = 2.5
 # The maximum download delay to be set in case of high latencies
 AUTOTHROTTLE_MAX_DELAY = 60
 # The average number of requests Scrapy should be sending in parallel to
@@ -88,3 +94,12 @@ AUTOTHROTTLE_DEBUG = False
 
 # Set settings whose default value is deprecated to a future-proof value
 FEED_EXPORT_ENCODING = "utf-8"
+
+# DATABASE SETTINGS
+DATABASE_SETTINGS = {
+    "host": os.getenv("POSTGRES_HOST"),
+    "user": os.getenv("POSTGRES_USER"),
+    "password": os.getenv("POSTGRES_PASSWORD"),
+    "database": os.getenv("POSTGRES_DB"),
+    "port": os.getenv("POSTGRES_PORT"),
+}

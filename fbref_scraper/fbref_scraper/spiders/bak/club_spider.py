@@ -25,7 +25,7 @@ class ClubSpider(scrapy.Spider):
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
 
-    def parse(self, response: Response) -> Any | None:
+    def parse(self, response: Response, **kwargs) -> Any | None:
         """
         Parses the given HTTP response to extract and return a JSON object containing URLs.
 

@@ -1,0 +1,11 @@
+# Overview of the different URL types and data locations
+
+## Big 5 Leagues
+
+| name                                  | page-type                                                       | url                                                                              | type of data needed                                | location xpath                                                                                                                                      | url structure of the new urls to follow                                          |
+|---------------------------------------|-----------------------------------------------------------------|----------------------------------------------------------------------------------|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| Big 5 leagues                         | overview page                                                   | https://fbref.com/en/comps/Big5/history/Big-5-European-Leagues-Seasons           | scrape new overview pages per year for all leagues | `//div[@id='div_seasons']//tbody//th//a/@href`                                                                                                      | https://fbref.com/en/comps/Big5/2022-2023/2022-2023-Big-5-European-Leagues-Stats |
+| Big 5 European league stats incl year | overview page of top 5 leagues of the year specified in the url | https://fbref.com/en/comps/Big5/2024-2025/2024-2025-Big-5-European-Leagues-Stats | url to the specific leagues based on the year      | `//div[@id='all_league_summary']//div[@id='div_league_summary']//div[contains(@id, 'league_summary_')]//div[contains(@class,'gridtitle')]//a/@href` |                                                                                  |
+
+url : https://fbref.com/en/comps/Big5/history/Big-5-European-Leagues-Seasons \
+page-type: overview
