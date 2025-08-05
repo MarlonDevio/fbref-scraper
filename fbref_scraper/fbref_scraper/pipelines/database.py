@@ -1,26 +1,31 @@
 import psycopg2
+from psycopg2._psycopg import cursor, connection
+from scrapy import Spider
+from scrapy.crawler import Crawler
 from itemadapter import ItemAdapter
 
 
 class DatabasePipeline:
     """Pipeline for storing items in PostgreSQL database."""
-    
+
     def __init__(self, settings):
         self.settings = settings
-        self.connection = None
-        self.cursor = None
+        self.connection:connection|None = None
+        self.cursor: cursor|None = None
 
     @classmethod
-    def from_crawler(cls, crawler):
+    def from_crawler(cls, crawler: Crawler):
         return cls(settings=crawler.settings.get("DATABASE_SETTINGS"))
 
-    def open_spider(self, spider):
+    def open_spider(self, spider: Spider):
         """Initialize database connection when spider opens."""
         try:
+            spider_name = spider.name
             self.connection = psycopg2.connect(**self.settings)
             self.cursor = self.connection.cursor()
-            self._create_tables()
-            spider.logger.info("Database connection established")
+            spider.logger.info(
+                f"Spider: {spider_name} succesfully connected with database"
+            )
         except Exception as e:
             spider.logger.error(f"Error connecting to database: {e}")
 
@@ -35,34 +40,34 @@ class DatabasePipeline:
         if not self.connection:
             spider.logger.warning("No database connection available")
             return item
-            
+
         adapter = ItemAdapter(item)
         item_type = type(item).__name__
-        
+
         try:
-            if item_type == 'PlayerItem':
+            if item_type == "PlayerItem":
                 self._insert_player(adapter)
-            elif item_type == 'ClubItem':
+            elif item_type == "ClubItem":
                 self._insert_club(adapter)
-            elif item_type == 'CompetitionItem':
+            elif item_type == "CompetitionItem":
                 self._insert_competition(adapter)
-            elif item_type == 'SeasonItem':
+            elif item_type == "SeasonItem":
                 self._insert_season(adapter)
-            elif item_type == 'PlayerStatsItem':
+            elif item_type == "PlayerStatsItem":
                 self._insert_player_stats(adapter)
-            
+
             self.connection.commit()
         except Exception as e:
             self.connection.rollback()
             spider.logger.error(f"Error inserting item: {e}")
-        
+
         return item
 
     def _create_tables(self):
         """Create database tables if they don't exist."""
         # self.cursor.execute("CREATE SCHEMA IF NOT EXISTS testforme")
         tables = {
-            'competitions': '''
+            "competitions": """
                 CREATE TABLE IF NOT EXISTS competitions (
                     id VARCHAR(255) PRIMARY KEY,
                     name VARCHAR(255) NOT NULL,
@@ -72,8 +77,8 @@ class DatabasePipeline:
                     seasons JSONB,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            ''',
-            'seasons': '''
+            """,
+            "seasons": """
                 CREATE TABLE IF NOT EXISTS seasons (
                     id VARCHAR(255) PRIMARY KEY,
                     year VARCHAR(50) NOT NULL,
@@ -83,8 +88,8 @@ class DatabasePipeline:
                     clubs JSONB,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            ''',
-            'clubs': '''
+            """,
+            "clubs": """
                 CREATE TABLE IF NOT EXISTS football.clubs (
                     id VARCHAR(255) PRIMARY KEY,
                     name VARCHAR(255) NOT NULL,
@@ -95,8 +100,8 @@ class DatabasePipeline:
                     players_count INTEGER,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            ''',
-            'players': '''
+            """,
+            "players": """
                 CREATE TABLE IF NOT EXISTS players (
                     id VARCHAR(255) PRIMARY KEY,
                     first_name VARCHAR(255),
@@ -108,8 +113,8 @@ class DatabasePipeline:
                     url VARCHAR(512) UNIQUE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            ''',
-            'player_stats': '''
+            """,
+            "player_stats": """
                 CREATE TABLE IF NOT EXISTS football.player_stats (
                     id SERIAL PRIMARY KEY,
                     player_id VARCHAR(255) NOT NULL,
@@ -127,15 +132,15 @@ class DatabasePipeline:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(player_id, season, club)
                 )
-            '''
+            """,
         }
-        
+
         for table_name, create_sql in tables.items():
             self.cursor.execute(create_sql)
 
     def _insert_player(self, adapter):
         """Insert player item into database."""
-        sql = '''
+        sql = """
             INSERT INTO players (id, first_name, last_name, date_of_birth, position, nationality, club, url)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (id) DO UPDATE SET
@@ -146,21 +151,24 @@ class DatabasePipeline:
                 nationality = EXCLUDED.nationality,
                 club = EXCLUDED.club,
                 url = EXCLUDED.url
-        '''
-        self.cursor.execute(sql, (
-            adapter.get('player_id'),
-            adapter.get('first_name'),
-            adapter.get('last_name'),
-            adapter.get('date_of_birth'),
-            adapter.get('position'),
-            adapter.get('nationality'),
-            adapter.get('club'),
-            adapter.get('url')
-        ))
+        """
+        self.cursor.execute(
+            sql,
+            (
+                adapter.get("player_id"),
+                adapter.get("first_name"),
+                adapter.get("last_name"),
+                adapter.get("date_of_birth"),
+                adapter.get("position"),
+                adapter.get("nationality"),
+                adapter.get("club"),
+                adapter.get("url"),
+            ),
+        )
 
     def _insert_club(self, adapter):
         """Insert club item into database."""
-        sql = '''
+        sql = """
             INSERT INTO football.clubs (id, name, country, league, season, url, players_count)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (id) DO UPDATE SET
@@ -170,20 +178,23 @@ class DatabasePipeline:
                 season = EXCLUDED.season,
                 url = EXCLUDED.url,
                 players_count = EXCLUDED.players_count
-        '''
-        self.cursor.execute(sql, (
-            adapter.get('club_id'),
-            adapter.get('name'),
-            adapter.get('country'),
-            adapter.get('league'),
-            adapter.get('season'),
-            adapter.get('url'),
-            adapter.get('players_count')
-        ))
+        """
+        self.cursor.execute(
+            sql,
+            (
+                adapter.get("club_id"),
+                adapter.get("name"),
+                adapter.get("country"),
+                adapter.get("league"),
+                adapter.get("season"),
+                adapter.get("url"),
+                adapter.get("players_count"),
+            ),
+        )
 
     def _insert_competition(self, adapter):
         """Insert competition item into database."""
-        sql = '''
+        sql = """
             INSERT INTO competitions (id, name, country, tier, url, seasons)
             VALUES (%s, %s, %s, %s, %s, %s)
             ON CONFLICT (id) DO UPDATE SET
@@ -192,20 +203,24 @@ class DatabasePipeline:
                 tier = EXCLUDED.tier,
                 url = EXCLUDED.url,
                 seasons = EXCLUDED.seasons
-        '''
+        """
         import json
-        self.cursor.execute(sql, (
-            adapter.get('competition_id'),
-            adapter.get('name'),
-            adapter.get('country'),
-            adapter.get('tier'),
-            adapter.get('url'),
-            json.dumps(adapter.get('seasons', []))
-        ))
+
+        self.cursor.execute(
+            sql,
+            (
+                adapter.get("competition_id"),
+                adapter.get("name"),
+                adapter.get("country"),
+                adapter.get("tier"),
+                adapter.get("url"),
+                json.dumps(adapter.get("seasons", [])),
+            ),
+        )
 
     def _insert_season(self, adapter):
         """Insert season item into database."""
-        sql = '''
+        sql = """
             INSERT INTO seasons (id, year, competition, competition_url, url, clubs)
             VALUES (%s, %s, %s, %s, %s, %s)
             ON CONFLICT (id) DO UPDATE SET
@@ -214,20 +229,24 @@ class DatabasePipeline:
                 competition_url = EXCLUDED.competition_url,
                 url = EXCLUDED.url,
                 clubs = EXCLUDED.clubs
-        '''
+        """
         import json
-        self.cursor.execute(sql, (
-            adapter.get('season_id'),
-            adapter.get('year'),
-            adapter.get('competition'),
-            adapter.get('competition_url'),
-            adapter.get('url'),
-            json.dumps(adapter.get('clubs', []))
-        ))
+
+        self.cursor.execute(
+            sql,
+            (
+                adapter.get("season_id"),
+                adapter.get("year"),
+                adapter.get("competition"),
+                adapter.get("competition_url"),
+                adapter.get("url"),
+                json.dumps(adapter.get("clubs", [])),
+            ),
+        )
 
     def _insert_player_stats(self, adapter):
         """Insert player stats item into database."""
-        sql = '''
+        sql = """
             INSERT INTO player_stats (player_id, season, club, league, position, matches_played, 
                                     goals, assists, yellow_cards, red_cards, minutes_played, url)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -241,18 +260,21 @@ class DatabasePipeline:
                 red_cards = EXCLUDED.red_cards,
                 minutes_played = EXCLUDED.minutes_played,
                 url = EXCLUDED.url
-        '''
-        self.cursor.execute(sql, (
-            adapter.get('player_id'),
-            adapter.get('season'),
-            adapter.get('club'),
-            adapter.get('league'),
-            adapter.get('position'),
-            adapter.get('matches_played'),
-            adapter.get('goals'),
-            adapter.get('assists'),
-            adapter.get('yellow_cards'),
-            adapter.get('red_cards'),
-            adapter.get('minutes_played'),
-            adapter.get('url')
-        ))
+        """
+        self.cursor.execute(
+            sql,
+            (
+                adapter.get("player_id"),
+                adapter.get("season"),
+                adapter.get("club"),
+                adapter.get("league"),
+                adapter.get("position"),
+                adapter.get("matches_played"),
+                adapter.get("goals"),
+                adapter.get("assists"),
+                adapter.get("yellow_cards"),
+                adapter.get("red_cards"),
+                adapter.get("minutes_played"),
+                adapter.get("url"),
+            ),
+        )
