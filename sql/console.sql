@@ -1,0 +1,1 @@
+/Users/marlonhamaekers/Library/Application Support/JetBrains/DataGrip2025.2/consoles/db/b78e7fbf-fe85-42a1-a4ea-9f30fe9f1ea8/console.sql
