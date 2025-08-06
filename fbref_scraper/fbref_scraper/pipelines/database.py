@@ -1,6 +1,6 @@
 import psycopg2
 from psycopg2._psycopg import cursor, connection
-from scrapy import Spider
+from scrapy import Spider, Item
 from scrapy.crawler import Crawler
 from itemadapter import ItemAdapter
 
@@ -21,11 +21,12 @@ class DatabasePipeline:
         """Initialize database connection when spider opens."""
         try:
             spider_name = spider.name
-            self.connection = psycopg2.connect(**self.settings)
-            self.cursor = self.connection.cursor()
-            spider.logger.info(
-                f"Spider: {spider_name} succesfully connected with database"
-            )
+            if spider_name == 'club_spider':
+                self.connection = psycopg2.connect(**self.settings)
+                self.cursor = self.connection.cursor()
+                spider.logger.info(
+                    f"Spider: {spider_name} succesfully connected with database"
+                )
         except Exception as e:
             spider.logger.error(f"Error connecting to database: {e}")
 
@@ -35,7 +36,7 @@ class DatabasePipeline:
             self.connection.close()
             spider.logger.info("Database connection closed")
 
-    def process_item(self, item, spider):
+    def process_item(self, item:Item, spider):
         """Process and store item in database."""
         if not self.connection:
             spider.logger.warning("No database connection available")
@@ -45,16 +46,16 @@ class DatabasePipeline:
         item_type = type(item).__name__
 
         try:
-            if item_type == "PlayerItem":
-                self._insert_player(adapter)
-            elif item_type == "ClubItem":
+            # if item_type == "PlayerItem":
+            #     self._insert_player(adapter)
+            if item_type == "ClubItem":
                 self._insert_club(adapter)
-            elif item_type == "CompetitionItem":
-                self._insert_competition(adapter)
-            elif item_type == "SeasonItem":
-                self._insert_season(adapter)
-            elif item_type == "PlayerStatsItem":
-                self._insert_player_stats(adapter)
+            # elif item_type == "CompetitionItem":
+            #     self._insert_competition(adapter)
+            # elif item_type == "SeasonItem":
+            #     self._insert_season(adapter)
+            # elif item_type == "PlayerStatsItem":
+            #     self._insert_player_stats(adapter)
 
             self.connection.commit()
         except Exception as e:
@@ -169,26 +170,14 @@ class DatabasePipeline:
     def _insert_club(self, adapter):
         """Insert club item into database."""
         sql = """
-            INSERT INTO football.clubs (id, name, country, league, season, url, players_count)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (id) DO UPDATE SET
-                name = EXCLUDED.name,
-                country = EXCLUDED.country,
-                league = EXCLUDED.league,
-                season = EXCLUDED.season,
-                url = EXCLUDED.url,
-                players_count = EXCLUDED.players_count
+            INSERT INTO football.clubs (club_id, club_name)
+            VALUES (%s, %s)
         """
         self.cursor.execute(
             sql,
             (
                 adapter.get("club_id"),
-                adapter.get("name"),
-                adapter.get("country"),
-                adapter.get("league"),
-                adapter.get("season"),
-                adapter.get("url"),
-                adapter.get("players_count"),
+                adapter.get("club_name"),
             ),
         )
 

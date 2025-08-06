@@ -68,7 +68,7 @@ DOWNLOAD_DELAY = 6
 ITEM_PIPELINES = {
     # "fbref_scraper.pipelines.cleaning.CleaningPipeline": 100,      # Clean data first
     # "fbref_scraper.pipelines.validation.ValidationPipeline": 200,  # Then validate
-    # "fbref_scraper.pipelines.database.DatabasePipeline": 300,      # Finally store in DB
+     "fbref_scraper.pipelines.database.DatabasePipeline": 300,      # Finally store in DB
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

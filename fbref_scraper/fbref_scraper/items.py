@@ -31,3 +31,6 @@ class LeagueItem(scrapy.Item):
     league_id = scrapy.Field()
     league_name = scrapy.Field()
     country_id = scrapy.Field()
+
+
+__all__ = ["FbrefScraperItem", "PlayerItem", "CountryItem", "ClubItem", "LeagueItem"]
